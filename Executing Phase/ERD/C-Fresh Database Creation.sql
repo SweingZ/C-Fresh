@@ -1,0 +1,267 @@
+-- USER TABLE
+DROP TABLE USER CASCADE CONSTRAINTS;
+
+CREATE TABLE USER (
+    user_id NUMBER PRIMARY KEY,
+    user_name VARCHAR2(100) NOT NULL,
+    email VARCHAR2(100) UNIQUE NOT NULL,
+    password VARCHAR2(100) NOT NULL,
+    user_role VARCHAR2(50) NOT NULL,
+    first_name VARCHAR2(100),
+    last_name VARCHAR2(100),
+    date_of_birth DATE,
+    profile_picture BLOB
+);
+
+
+-- ADMIN TABLE
+DROP TABLE ADMIN CASCADE CONSTRAINTS;
+
+CREATE TABLE ADMIN (
+    user_id NUMBER PRIMARY KEY,
+);
+
+ALTER TABLE ADMIN ADD CONSTRAINT fk_admin_to_user FOREIGN KEY (user_id) REFERENCES USER(user_id);
+
+
+-- TRADER TABLE
+DROP TABLE TRADER CASCADE CONSTRAINTS;
+
+CREATE TABLE TRADER (
+    user_id NUMBER PRIMARY KEY,
+    date_joined DATE,
+    isVerified CHAR(1),
+);
+
+ALTER TABLE TRADER ADD CONSTRAINT fk_trader_to_user FOREIGN KEY (user_id) REFERENCES USER(user_id);
+
+
+-- CUSTOMER TABLE
+DROP TABLE CUSTOMER CASCADE CONSTRAINTS;
+
+CREATE TABLE CUSTOMER (
+    user_id NUMBER PRIMARY KEY,
+    date_joined DATE,
+    isVerified CHAR(1),
+);
+
+ALTER TABLE CUSTOMER ADD CONSTRAINT fk_customer_to_user FOREIGN KEY (user_id) REFERENCES USER(user_id);
+
+
+-- SHOP TABLE
+DROP TABLE SHOP CASCADE CONSTRAINTS;
+
+CREATE TABLE SHOP (
+    shop_id NUMBER PRIMARY KEY,
+    shop_name VARCHAR2(100) NOT NULL,
+    address VARCHAR2(255),
+    shop_image BLOB,
+    trader_id NUMBER,
+);
+
+ALTER TABLE SHOP ADD CONSTRAINT fk_shop_to_trader FOREIGN KEY (trader_id) REFERENCES TRADER(user_id);
+
+
+-- PRODUCT TABLE
+DROP TABLE PRODUCT CASCADE CONSTRAINTS;
+
+CREATE TABLE PRODUCT (
+    product_id NUMBER PRIMARY KEY,
+    product_name VARCHAR2(100) NOT NULL,
+    description VARCHAR2(500),
+    price NUMBER(10, 2) NOT NULL,
+    stock_available NUMBER,
+    min_order NUMBER,
+    max_order NUMBER,
+    allergy_information VARCHAR2(255),
+    isApproved CHAR(1),
+    shop_id NUMBER,
+    category_id NUMBER,
+);
+
+ALTER TABLE PRODUCT ADD CONSTRAINT fk_product_to_shop FOREIGN KEY (shop_id) REFERENCES SHOP(shop_id);
+ALTER TABLE PRODUCT ADD CONSTRAINT fk_product_to_category FOREIGN KEY (category_id) REFERENCES PRODUCT_CATEGORY(category_id);
+
+
+
+-- REVIEW TABLE
+DROP TABLE REVIEW CASCADE CONSTRAINTS;
+
+CREATE TABLE REVIEW (
+    review_id NUMBER PRIMARY KEY,
+    rating NUMBER(1,0),
+    comment VARCHAR2(500),
+    customer_id NUMBER,
+    product_id NUMBER,
+);
+
+ALTER TABLE REVIEW ADD CONSTRAINT fk_review_to_customer FOREIGN KEY (customer_id) REFERENCES CUSTOMER(user_id);
+ALTER TABLE REVIEW ADD CONSTRAINT fk_review_to_product FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id);
+
+
+-- WISHLIST TABLE
+DROP TABLE WISHLIST CASCADE CONSTRAINTS;
+
+CREATE TABLE WISHLIST (
+    wishlist_id NUMBER PRIMARY KEY,
+    user_id NUMBER,
+);
+
+ALTER TABLE WISHLIST ADD CONSTRAINT fk_wishlist_to_user FOREIGN KEY (user_id) REFERENCES CUSTOMER(user_id);
+
+
+-- WISHLIST_PRODUCT TABLE
+DROP TABLE WISHLIST_PRODUCT CASCADE CONSTRAINTS;
+
+CREATE TABLE WISHLIST_PRODUCT (
+    wishlist_product_id NUMBER PRIMARY KEY,
+    product_id NUMBER,
+    wishlist_id NUMBER,
+    
+);
+
+ALTER TABLE WISHLIST_PRODUCT ADD CONSTRAINT fk_wishlistProduct_to_product FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id);
+ALTER TABLE WISHLIST_PRODUCT ADD CONSTRAINT fk_wishlistProduct_to_wishlist FOREIGN KEY (wishlist_id) REFERENCES WISHLIST(wishlist_id);
+
+
+-- PRODUCT_CATEGORY TABLE
+DROP TABLE PRODUCT_CATEGORY CASCADE CONSTRAINTS;
+
+CREATE TABLE PRODUCT_CATEGORY (
+    category_id NUMBER PRIMARY KEY,
+    category_name VARCHAR2(100) NOT NULL
+);
+
+
+-- CART_PRODUCT TABLE
+DROP TABLE CART_PRODUCT CASCADE CONSTRAINTS;
+
+CREATE TABLE CART_PRODUCT (
+    cart_product_id NUMBER PRIMARY KEY,
+    product_id NUMBER,
+    cart_id NUMBER,
+);
+
+ALTER TABLE CART_PRODUCT ADD CONSTRAINT fk_cartProduct_to_product FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id);
+ALTER TABLE CART_PRODUCT ADD CONSTRAINT fk_cartProduct_to_cart FOREIGN KEY (cart_id) REFERENCES CART(cart_id);
+
+
+-- DISCOUNT TABLE
+DROP TABLE DISCOUNT CASCADE CONSTRAINTS;
+
+CREATE TABLE DISCOUNT (
+    discount_id NUMBER PRIMARY KEY,
+    discount_percentage NUMBER(5,2),
+    start_date DATE,
+    end_date DATE,
+    description VARCHAR2(500)
+);
+
+-- ORDER_PRODUCT TABLE
+DROP TABLE ORDER_PRODUCT CASCADE CONSTRAINTS;
+
+CREATE TABLE ORDER_PRODUCT (
+    order_product_id NUMBER PRIMARY KEY,
+    order_id NUMBER,
+    product_id NUMBER,
+);
+
+ALTER TABLE ORDER_PRODUCT ADD CONSTRAINT fk_orderProduct_to_order FOREIGN KEY (order_id) REFERENCES ORDERS(order_id);
+ALTER TABLE ORDER_PRODUCT ADD CONSTRAINT fk_orderProduct_to_product FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id)
+
+
+
+-- ORDER TABLE
+DROP TABLE ORDERS CASCADE CONSTRAINTS;
+
+CREATE TABLE ORDERS (
+    order_id NUMBER PRIMARY KEY,
+    order_date DATE,
+    quantity NUMBER,
+    cart_id NUMBER,
+    customer_id NUMBER,
+    collection_slot_id NUMBER,
+);
+
+ALTER TABLE ORDERS ADD CONSTRAINT fk_order__to_cart FOREIGN KEY (cart_id) REFERENCES CART(cart_id);
+ALTER TABLE ORDERS ADD CONSTRAINT fk_order__to_customer FOREIGN KEY (customer_id) REFERENCES CUSTOMER(user_id);
+ALTER TABLE ORDERS ADD CONSTRAINT fk_order_to_collection_slot FOREIGN KEY (collection_slot_id) REFERENCES COLLECTION_SLOT(collection_slot_id);
+
+
+
+-- CART TABLE 
+DROP TABLE CART CASCADE CONSTRAINTS;
+
+CREATE TABLE CART (
+    cart_id NUMBER PRIMARY KEY,
+    total_items NUMBER,
+    customer_id NUMBER,
+);
+
+ALTER TABLE CART ADD CONSTRAINT fk_cart_to_customer FOREIGN KEY (customer_id) REFERENCES CUSTOMER(user_id);
+
+
+-- PAYMENT TABLE
+DROP TABLE PAYMENT CASCADE CONSTRAINTS;
+
+CREATE TABLE PAYMENT (
+    payment_id NUMBER PRIMARY KEY,
+    payment_date DATE,
+    order_id NUMBER,
+    payment_type_id NUMBER,
+    customer_id NUMBER,
+);
+
+ALTER TABLE PAYMENT ADD CONSTRAINT fk_payment_to_order FOREIGN KEY (order_id) REFERENCES ORDERS(order_id);
+ALTER TABLE PAYMENT ADD CONSTRAINT fk_payment_to_payment_type FOREIGN KEY (payment_type_id) REFERENCES PAYMENT_TYPE(payment_type_id);
+ALTER TABLE PAYMENT ADD CONSTRAINT fk_payment_to_customer FOREIGN KEY (customer_id) REFERENCES CUSTOMER(user_id);
+
+
+
+
+-- PAYMENT_TYPE TABLE
+DROP TABLE PAYMENT_TYPE CASCADE CONSTRAINTS;
+
+CREATE TABLE PAYMENT_TYPE (
+    payment_type_id NUMBER PRIMARY KEY,
+    payment_type_name VARCHAR2(100) NOT NULL
+);
+
+
+-- COLLECTION_SLOT TABLE
+DROP TABLE COLLECTION_SLOT CASCADE CONSTRAINTS;
+
+CREATE TABLE COLLECTION_SLOT (
+    collection_slot_id NUMBER PRIMARY KEY,
+    max_orders NUMBER,
+    collection_day VARCHAR2(50),
+    start_time TIMESTAMP,
+    end_time TIMESTAMP
+);
+
+
+-- PRODUCT_REPORT TABLE
+DROP TABLE PRODUCT_REPORT CASCADE CONSTRAINTS;
+
+CREATE TABLE PRODUCT_REPORT (
+    product_report_id NUMBER PRIMARY KEY,
+    product_id NUMBER,
+    report_id NUMBER,
+);
+
+ALTER TABLE PRODUCT_REPORT ADD CONSTRAINT fk_product_report_to_product FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id);
+ALTER TABLE PRODUCT_REPORT ADD CONSTRAINT fk_product_report_to_report FOREIGN KEY (report_id) REFERENCES REPORT(report_id);
+
+
+
+-- REPORT TABLE
+DROP TABLE REPORT CASCADE CONSTRAINTS;
+
+CREATE TABLE REPORT (
+    report_id NUMBER PRIMARY KEY,
+    user_id NUMBER,
+    report_date DATE,
+);
+
+ALTER TABLE REPORT ADD CONSTRAINT fk_report_to_user FOREIGN KEY (user_id) REFERENCES USER(user_id);
+
